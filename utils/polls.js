@@ -1,5 +1,5 @@
 const pollHeaders = {
-    'Authorization': 'Bearer qt0ojj5l3x1nzpiuk9r3l5ty0zu5od',
+    'Authorization': 'Bearer ',
     'Client-Id': '84zw5yyzedkhgsg2u5tnw66xsk1ulw',
     'Content-Type': 'application/json'
 }
