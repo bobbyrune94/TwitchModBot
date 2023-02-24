@@ -1,13 +1,13 @@
-const pollHeaders = {
-    'Authorization': 'Bearer ',
-    'Client-Id': '84zw5yyzedkhgsg2u5tnw66xsk1ulw',
-    'Content-Type': 'application/json'
-}
+const { pollPredictHeader } = require('../config.js');
+
+const bpollFormat1 = `!bpoll [duration] [poll title]`;
+const bpollFormat2 = `!bpoll [duration] [poll title] [option 1] [option 2]`;
+const pollFormat = `!poll [duration] [number of options] [poll title] [option 1] [option 2] ...`;
 
 function createPollHandler(client, channel, broadcasterId, command, args) {
     let duration = parseInt(args[0]);
     if (isNaN(duration)) {
-        client.say(channel, "Duration parameter not a number. Try Again.");
+        client.say(channel, "Duration parameter expected after command. Ex: [command] [duration in seconds]. Try again.");
         return;
     }
 
@@ -21,8 +21,9 @@ function createPollHandler(client, channel, broadcasterId, command, args) {
     }
 }
 
-function createStartersPoll(client, _, broadcasterId, duration) {
+function createStartersPoll(client, channel, broadcasterId, duration) {
     sendCreatePollRequest(client,
+        channel,
         broadcasterId, 
         'Which Starter?', 
         ['Grass (Left)', 'Fire (Middle)', 'Water (Right)'], 
@@ -31,7 +32,7 @@ function createStartersPoll(client, _, broadcasterId, duration) {
 
 function createBinaryPoll(client, channel, broadcasterId, duration, args) {
     if (args.length != 2 && args.length != 4) {
-        client.say(channel, "Invalid Number of Poll Parameters. Try Again.");
+        client.say(channel, `Invalid Number of Poll Parameters. !bpoll command should either be "${bpollFormat1}" or "${bpollFormat2}". Try again.`);
         return;
     }
 
@@ -47,7 +48,7 @@ function createBinaryPoll(client, channel, broadcasterId, duration, args) {
 function createPoll(client, channel, broadcasterId, duration, args) {
     let numOptions = parseInt(args[1]);
     if (isNaN(numOptions)) {
-        client.say(channel, "Unable to determine number of options. Try Again.");
+        client.say(channel, `Unable to determine number of options. !poll command should be formatted as "${pollFormat}"`);
         return;
     }
 
@@ -80,7 +81,7 @@ function sendCreatePollRequest(client, channel, broadcasterId, pollTitle, option
 
     fetch('https://api.twitch.tv/helix/polls', {
         method: 'POST',
-        headers: pollHeaders,
+        headers: pollPredictHeader,
         body: JSON.stringify(requestBody),
     })
     .then((res) => res.json())

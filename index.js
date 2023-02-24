@@ -1,4 +1,5 @@
 const tmi = require('tmi.js');
+const { bobbyruneAccountAuth } = require('./config.js');
 const { createPollHandler } = require('./utils/polls.js');
 
 const client = new tmi.Client({
@@ -8,8 +9,7 @@ const client = new tmi.Client({
     },
     identity: {
         username: 'kungfu_kenny98',
-        password: 'oauth:dpkm39s2pv7ul3obu12m0p42zjdgon' // bobbyrune94
-        // password: 'oauth:bk7a4jyf9fjvah4pog4qnfndptnkya' // kungfu_kenny98
+        password: bobbyruneAccountAuth
     },
     channels: [ 'kungfu_kenny98' ]
 });
