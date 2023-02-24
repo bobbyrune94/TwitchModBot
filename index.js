@@ -1,6 +1,7 @@
 const tmi = require('tmi.js');
 const { bobbyruneAccountAuth } = require('./config.js');
 const { createPollHandler } = require('./utils/polls.js');
+const { createPredictionHandler } = require('./utils/prediction.js');
 
 const client = new tmi.Client({
     connection: {
@@ -34,6 +35,8 @@ client.on('message', (channel, tags, message, self) => {
 
         if(command === 'starterpoll' || command === 'bpoll' || command === 'poll') {
             createPollHandler(client, channel, broadcasterId, command, args);
+        } else if (command === 'bpredict' || command === 'predict') {
+            createPredictionHandler(client, channel, broadcasterId, command, args);
         }
         else {
             console.log(args);
