@@ -1,7 +1,8 @@
 const { pollPredictHeader, getUserDataHeader } = require('../config.js');
 
-function sendGetUserDataRequest(username) {
-    return fetch('https://api.twitch.tv/helix/users?login=' + username, {
+function sendGetUserDataRequest(usernames) {
+    let params = usernames.join('&login=');
+    return fetch('https://api.twitch.tv/helix/users?login=' + params, {
         headers: getUserDataHeader,
     })
     .then((res) => res.json())

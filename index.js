@@ -20,9 +20,7 @@ const client = new tmi.Client({
 const accountToIdMap = {
     "kungfu_kenny98": "601564078"
 }
-
 let streamerConfigs = getStreamerConfigs();
-console.log(streamerConfigs);
 
 client.connect();
 
@@ -31,8 +29,7 @@ client.on('message', (channel, tags, message, self) => {
         return;
     }
 
-    // console.log(tags);
-
+    console.log(tags);
     console.log(`${tags['display-name']}: ${message}`);
 
     if (message.startsWith('!')) {
@@ -44,13 +41,14 @@ client.on('message', (channel, tags, message, self) => {
             createPollHandler(client, channel, broadcasterId, command, args);
         } else if (command === 'bpredict' || command === 'predict') {
             createPredictionHandler(client, channel, broadcasterId, command, args);
-        } else if (command === 'so' || command === 'shoutout') {
-            if(tags['mod'] === true || tags['username'] === channel.slice(1)) {
-                addShoutout(client, channel, streamerConfigs, args);
-            }
-        }
-        else {
+        } else {
             console.log(args);
+        }
+    }
+
+    if (message.match(/(?:https:\/\/)?twitch\.tv\/(\S+)/) != null) {
+        if(tags['mod'] === true || tags['username'] === channel.slice(1)) {
+            addShoutout(client, channel, streamerConfigs, [...message.matchAll(/(?:https:\/\/)?twitch\.tv\/(\S+)/g)]);
         }
     }
 });
