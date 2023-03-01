@@ -1,8 +1,19 @@
 const { pollPredictHeader, getUserDataHeader } = require('../config.js');
 
-function sendGetUserDataRequest(usernames) {
+function sendGetUserDataRequestWithUsername(usernames) {
     let params = usernames.join('&login=');
     return fetch('https://api.twitch.tv/helix/users?login=' + params, {
+        headers: getUserDataHeader,
+    })
+    .then((res) => res.json())
+    .then((data) => {
+        return data;
+    })
+}
+
+function sendGetUserDataRequestWithUserId(userIds) {
+    let params = userIds.join('&id=');
+    return fetch('https://api.twitch.tv/helix/users?id=' + params, {
         headers: getUserDataHeader,
     })
     .then((res) => res.json())
@@ -52,5 +63,6 @@ function sendCreatePredictionRequest(broadcasterId, predictionTitle, optionsList
 module.exports = {
     sendCreatePollRequest,
     sendCreatePredictionRequest,
-    sendGetUserDataRequest
+    sendGetUserDataRequestWithUsername,
+    sendGetUserDataRequestWithUserId
 }
