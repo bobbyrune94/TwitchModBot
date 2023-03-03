@@ -1,16 +1,10 @@
 const { sendGetUserDataRequestWithUsername, sendGetUserDataRequestWithUserId } = require('./twitch-api.js');
 
-function addShoutout(client, channel, broadcasterId, streamerConfigs, links) {
-    console.log("Links found:");
-    let users = [];
-    for (let link of links) {
-        users.push(link[1]);
-    }
+const shoutoutCooldownMillis = 5400000;
 
+function addShoutouts(client, channel, broadcasterId, streamerConfigs, users) {
     let config = streamerConfigs[broadcasterId];
     sendGetUserDataRequestWithUsername(users).then((data) => {
-        console.log(streamerConfigs);
-        console.log(data);
         if (data['data'] != undefined) {
             for (let user of data['data']) {
                 if (!config['shoutouts'].includes(user['id'])) {
@@ -27,11 +21,36 @@ function addShoutout(client, channel, broadcasterId, streamerConfigs, links) {
     })
 }
 
-function shoutoutUser(client, channel, userId) {
-    sendGetUserDataRequestWithUserId([userId]).then((data) => {
+function shoutoutUser(client, channel, username, shoutoutCooldowns) {
+    sendGetUserDataRequestWithUsername([username]).then((data) => {
         if (data['data'] != undefined) {
             for (let user of data['data']) {
-                client.say(channel, `!so ${user['login']}`);
+                if (Date.now() - shoutoutCooldowns[user['id']] > shoutoutCooldownMillis) {
+                    client.say(channel, `!so ${user['login']}`);
+                    shoutoutCooldowns[user['id']] = Date.now();
+                } else {
+                    console.log('Shout out in cooldown');
+                }
+            }
+            console.log(shoutoutCooldowns);
+        } else {
+            console.log(`Error: Status ${data['status']} ${data['message']}`);
+        }
+    })
+}
+
+function removeShoutout(client, channel, username, streamerConfig) {
+    sendGetUserDataRequestWithUsername([username]).then((data) => {
+        if (data['data'] != undefined) {
+            for (let user of data['data']) {
+                let index = streamerConfig['shoutouts'].indexOf(user['id']);
+                if(index != -1) {
+                    streamerConfig['shoutouts'].splice(index, 1);
+                    console.log(streamerConfig);
+                    client.say(channel, `${username} removed from automated shoutout list`);
+                } else {
+                    client.say(channel, `${username} not found in automated shoutout list`);
+                }
             }
         } else {
             console.log(`Error: Status ${data['status']} ${data['message']}`);
@@ -51,7 +70,8 @@ function generateShoutoutCooldowns(streamerConfigs) {
 }
 
 module.exports = {
-    addShoutout,
+    addShoutouts,
     shoutoutUser,
-    generateShoutoutCooldowns
+    generateShoutoutCooldowns,
+    removeShoutout
 }
