@@ -20,8 +20,10 @@ const client = new tmi.Client({
 const accountToIdMap = {
     "kungfu_kenny98": "601564078"
 }
-let streamerConfigs = getStreamerConfigs();
-let shoutoutCooldowns = generateShoutoutCooldowns(streamerConfigs);
+const streamerConfigs = getStreamerConfigs();
+const shoutoutCooldowns = generateShoutoutCooldowns(streamerConfigs);
+
+const TWITCHLINKREGEX = /(?:https:\/\/)?twitch\.tv\/(\S+)/g;
 
 console.log(shoutoutCooldowns);
 
@@ -45,23 +47,30 @@ client.on('message', (channel, tags, message, self) => {
         const args = message.slice(1).match(/(?:[^\s"]+|"[^"]*")+/g);
         const command = args.shift().toLowerCase();
 
-        if(command === 'starterpoll' || command === 'bpoll' || command === 'poll') {
-            createPollHandler(client, channel, broadcasterId, command, args);
-        } else if(command === 'bpredict' || command === 'predict') {
-            createPredictionHandler(client, channel, broadcasterId, command, args);
-        } else if(command === 'stopso') {
-            removeShoutout(client, channel, args[0], streamerConfigs[broadcasterId]);
-        } else if(command === 'mockso') {
-            shoutoutUser(client, channel, args[0], shoutoutCooldowns[broadcasterId]);
-        } else {
-            console.log(args);
+        switch(command) {
+            case 'starterpoll':
+            case 'bpoll':
+            case 'poll':
+                createPollHandler(client, channel, broadcasterId, command, args);
+                break;
+            case 'bpredict':
+            case 'predict':
+                createPollHandler(client, channel, broadcasterId, command, args);
+                break;
+            case 'stopso':
+                removeShoutout(client, channel, args[0], streamerConfigs[broadcasterId]);
+                break;
+            case 'mockso':
+                shoutoutUser(client, channel, args[0], shoutoutCooldowns[broadcasterId]);
+                break;
+            default:
+                console.log(args);
         }
     }
 
-    if (message.match(/(?:https:\/\/)?twitch\.tv\/(\S+)/) != null) {
-        if(tags['mod'] === true || tags['username'] === channel.slice(1)) {
-            let links = [...message.matchAll(/(?:https:\/\/)?twitch\.tv\/(\S+)/g)];
-            addShoutouts(client, channel, broadcasterId, streamerConfigs, links.map((link) => link[1]));
+    if (message.match(TWITCHLINKREGEX) != null) {
+        if(isModeratorOrBroadcaster(channel, messageTags)) {
+            addShoutouts(client, channel, streamerConfigs[broadcasterId], [...message.matchAll(TWITCHLINKREGEX)].map((link) => link[1]));
         }
     }
 });
@@ -71,6 +80,10 @@ client.on("raided", (channel, username, viewers) => {
         client.say(channel, `!so ${username}`);
     }, 5000);
 })
+
+function isModeratorOrBroadcaster(channel, messageTags) {
+    return messageTags['mod'] === true || messageTags['username'] === channel.slice(1);
+}
 
 function exitHandler(options, exitCode) {
     if(options.cleanup) {

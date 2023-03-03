@@ -1,20 +1,17 @@
-const { sendGetUserDataRequestWithUsername, sendGetUserDataRequestWithUserId } = require('./twitch-api.js');
+const { sendGetUserDataRequestWithUsername } = require('./twitch-api.js');
 
-const shoutoutCooldownMillis = 5400000;
+const shoutoutCooldownMillis = 5400000; //1.5 hours
 
-function addShoutouts(client, channel, broadcasterId, streamerConfigs, users) {
-    let config = streamerConfigs[broadcasterId];
+function addShoutouts(client, channel, streamerConfig, users) {
     sendGetUserDataRequestWithUsername(users).then((data) => {
         if (data['data'] != undefined) {
-            for (let user of data['data']) {
-                if (!config['shoutouts'].includes(user['id'])) {
-                    config['shoutouts'].push(user['id']);
-                    client.say(channel, `${user['login']} added to automated shoutouts list`);
-                } else {
-                    console.log('User already in shoutout list');
-                }
-            }
-            console.log(streamerConfigs);
+            data['data']
+            .filter((user) => !streamerConfig['shoutouts'].includes(user['id']))
+            .forEach((user) => {
+                streamerConfig['shoutouts'].push(user['id']);
+                client.say(channel, `${user['login']} added to automated shoutouts list`);
+            })
+            console.log(streamerConfig);
         } else {
             console.log(`Error: Status ${data['status']} ${data['message']}`);
         }
@@ -24,14 +21,12 @@ function addShoutouts(client, channel, broadcasterId, streamerConfigs, users) {
 function shoutoutUser(client, channel, username, shoutoutCooldowns) {
     sendGetUserDataRequestWithUsername([username]).then((data) => {
         if (data['data'] != undefined) {
-            for (let user of data['data']) {
-                if (Date.now() - shoutoutCooldowns[user['id']] > shoutoutCooldownMillis) {
-                    client.say(channel, `!so ${user['login']}`);
-                    shoutoutCooldowns[user['id']] = Date.now();
-                } else {
-                    console.log('Shout out in cooldown');
-                }
-            }
+            data['data']
+            .filter((user) => Date.now() - shoutoutCooldowns[user['id']] > shoutoutCooldownMillis)
+            .forEach((user) => {
+                client.say(channel, `!so ${user['login']}`);
+                shoutoutCooldowns[user['id']] = Date.now();
+            });
             console.log(shoutoutCooldowns);
         } else {
             console.log(`Error: Status ${data['status']} ${data['message']}`);
@@ -42,16 +37,13 @@ function shoutoutUser(client, channel, username, shoutoutCooldowns) {
 function removeShoutout(client, channel, username, streamerConfig) {
     sendGetUserDataRequestWithUsername([username]).then((data) => {
         if (data['data'] != undefined) {
-            for (let user of data['data']) {
-                let index = streamerConfig['shoutouts'].indexOf(user['id']);
-                if(index != -1) {
-                    streamerConfig['shoutouts'].splice(index, 1);
-                    console.log(streamerConfig);
-                    client.say(channel, `${username} removed from automated shoutout list`);
-                } else {
-                    client.say(channel, `${username} not found in automated shoutout list`);
-                }
-            }
+            data['data']
+            .filter((user) => streamerConfig['shoutouts'].indexOf(user['id']) != -1)
+            .forEach((user) => {
+                streamerConfig['shoutouts'].splice(streamerConfig['shoutouts'].indexOf(user['id']), 1);
+                console.log(streamerConfig);
+                client.say(channel, `${username} removed from automated shoutout list`);
+            })
         } else {
             console.log(`Error: Status ${data['status']} ${data['message']}`);
         }
@@ -59,14 +51,16 @@ function removeShoutout(client, channel, username, streamerConfig) {
 }
 
 function generateShoutoutCooldowns(streamerConfigs) {
-    let cooldownObj = {};
-    for(let streamerId in streamerConfigs) {
-        cooldownObj[streamerId] = {};
-        for(let shoutoutId of streamerConfigs[streamerId]['shoutouts']) {
-            cooldownObj[streamerId][shoutoutId] = new Date(0);
-        }
-    }
-    return cooldownObj;
+    console.log(streamerConfigs);
+    console.log(typeof streamerConfigs);
+
+    return Object.keys(streamerConfigs).reduce((cooldownObj, streamerId) => {
+        cooldownObj[streamerId] = streamerConfigs[streamerId]['shoutouts'].reduce((configObj, shoutoutId) => {
+            configObj[shoutoutId] = new Date(0);
+            return configObj;
+        }, {});
+        return cooldownObj;
+    }, {});
 }
 
 module.exports = {
