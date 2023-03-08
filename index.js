@@ -1,10 +1,14 @@
 const tmi = require('tmi.js');
+const path = require('node:path');
+
 const { bobbyruneAccountAuth } = require('./config.js');
 const { createPollHandler } = require('./utils/polls.js');
 const { createPredictionHandler } = require('./utils/prediction.js');
 const { addShoutouts, removeShoutout, shoutoutUser, generateShoutoutCooldowns } = require('./utils/shoutout.js');
-const { getStreamerConfigs, setStreamerConfigs } = require('./utils/file.js');
+const { readConfigFile, writeConfigFile } = require('./utils/file.js');
 const { createTimer } = require('./utils/timer.js');
+
+const CONFIG_FILE_NAME = path.join(__dirname, 'configs', 'streamer-configs.json');
 
 const client = new tmi.Client({
     connection: {
@@ -21,7 +25,7 @@ const client = new tmi.Client({
 const accountToIdMap = {
     "kungfu_kenny98": "601564078"
 }
-const streamerConfigs = getStreamerConfigs();
+const streamerConfigs = readConfigFile(CONFIG_FILE_NAME);
 const shoutoutCooldowns = generateShoutoutCooldowns(streamerConfigs);
 
 const TWITCHLINKREGEX = /(?:https:\/\/)?twitch\.tv\/(\S+)/g;
@@ -91,7 +95,7 @@ function isModeratorOrBroadcaster(channel, messageTags) {
 function exitHandler(options, exitCode) {
     if(options.cleanup) {
         console.log('Process Ending. Writing File');
-        setStreamerConfigs(JSON.stringify(streamerConfigs));
+        writeConfigFile(CONFIG_FILE_NAME, JSON.stringify(streamerConfigs));
     }
     process.exit();
 }

@@ -31,6 +31,9 @@ function createTimer(client, channel, timeString) {
         return;
     }
     client.say(channel, `Creating timer for ${seconds} seconds`);
+    setTimeout(() => {
+        client.say(channel, `Ding Ding Ding! Timer for ${seconds} seconds is over.`);
+    }, seconds * 1000);
 }
 
 module.exports = {

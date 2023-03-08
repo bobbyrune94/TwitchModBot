@@ -1,23 +1,19 @@
 const fs = require('fs');
-const path = require('node:path');
 
-const CONFIG_FILE_NAME = path.join(__dirname, 'streamer-configs.json');
-
-function getStreamerConfigs() {
-    let streamerConfigs = JSON.parse(fs.readFileSync(CONFIG_FILE_NAME, {encoding:'utf8', flag:'r'}));
+function readConfigFile(filename) {
+    let streamerConfigs = JSON.parse(fs.readFileSync(filename, {encoding:'utf8', flag:'r'}));
     return streamerConfigs;
 }
 
-function setStreamerConfigs(streamerConfigString) {
+function writeConfigFile(filename, configString) {
     try {
-        console.log(streamerConfigString)
-        fs.writeFileSync(CONFIG_FILE_NAME, streamerConfigString);
+        fs.writeFileSync(filename, configString);
     } catch (err) {
         console.error(err);
     }
 }
 
 module.exports = {
-    getStreamerConfigs,
-    setStreamerConfigs
+    readConfigFile,
+    writeConfigFile
 }
