@@ -4,6 +4,7 @@ const { createPollHandler } = require('./utils/polls.js');
 const { createPredictionHandler } = require('./utils/prediction.js');
 const { addShoutouts, removeShoutout, shoutoutUser, generateShoutoutCooldowns } = require('./utils/shoutout.js');
 const { getStreamerConfigs, setStreamerConfigs } = require('./utils/file.js');
+const { createTimer } = require('./utils/timer.js');
 
 const client = new tmi.Client({
     connection: {
@@ -55,7 +56,7 @@ client.on('message', (channel, tags, message, self) => {
                 break;
             case 'bpredict':
             case 'predict':
-                createPollHandler(client, channel, broadcasterId, command, args);
+                createPredictionHandler(client, channel, broadcasterId, command, args);
                 break;
             case 'stopso':
                 removeShoutout(client, channel, args[0], streamerConfigs[broadcasterId]);
@@ -63,6 +64,8 @@ client.on('message', (channel, tags, message, self) => {
             case 'mockso':
                 shoutoutUser(client, channel, args[0], shoutoutCooldowns[broadcasterId]);
                 break;
+            case 'timer':
+                createTimer(client, channel, args[0]);
             default:
                 console.log(args);
         }
