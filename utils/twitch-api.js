@@ -1,4 +1,4 @@
-const { pollPredictHeader, getUserDataHeader } = require('../config.js');
+const { pollPredictHeader, getUserDataHeader, viewChattersHeader } = require('../config.js');
 
 function sendGetUserDataRequestWithUsername(usernames) {
     let params = usernames.join('&login=');
@@ -60,9 +60,28 @@ function sendCreatePredictionRequest(broadcasterId, predictionTitle, optionsList
     })
 }
 
+function sendGetViewersRequest(channel) {
+    return fetch(`https://tmi.twitch.tv/group/user/${channel}/chatters`)
+    .then((res) => res.json())
+    .then((data) => {
+        return data;
+    })
+}
+
+//TODO: find more reliable API/source to check for viewbots
+function sendViewbotCheckRequest(userId) {
+    return fetch(`https://api.twitchbots.info/v2/bot/${userId}`)
+    .then((res) => res.json())
+    .then((data) => {
+        return data;
+    })
+}
+
 module.exports = {
     sendCreatePollRequest,
     sendCreatePredictionRequest,
     sendGetUserDataRequestWithUsername,
-    sendGetUserDataRequestWithUserId
+    sendGetUserDataRequestWithUserId,
+    sendGetViewersRequest,
+    sendViewbotCheckRequest
 }

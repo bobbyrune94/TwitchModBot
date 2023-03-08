@@ -1,9 +1,15 @@
 const tmi = require('tmi.js');
+const path = require('node:path');
+
 const { bobbyruneAccountAuth } = require('./config.js');
 const { createPollHandler } = require('./utils/polls.js');
 const { createPredictionHandler } = require('./utils/prediction.js');
 const { addShoutouts, removeShoutout, shoutoutUser, generateShoutoutCooldowns } = require('./utils/shoutout.js');
-const { getStreamerConfigs, setStreamerConfigs } = require('./utils/file.js');
+const { readConfigFile, writeConfigFile } = require('./utils/file.js');
+const { detectViewBots } = require('./utils/viewers.js');
+
+const STREAMER_CONFIG_FILE_NAME = path.join(__dirname, 'configs', 'streamer-configs.json');
+const BOT_LIST_FILE_NAME = path.join(__dirname, 'configs', 'bot-list.json');
 
 const client = new tmi.Client({
     connection: {
@@ -20,8 +26,10 @@ const client = new tmi.Client({
 const accountToIdMap = {
     "kungfu_kenny98": "601564078"
 }
-const streamerConfigs = getStreamerConfigs();
+const streamerConfigs = readConfigFile(STREAMER_CONFIG_FILE_NAME);
 const shoutoutCooldowns = generateShoutoutCooldowns(streamerConfigs);
+
+const botViewerList = readConfigFile(BOT_LIST_FILE_NAME);
 
 const TWITCHLINKREGEX = /(?:https:\/\/)?twitch\.tv\/(\S+)/g;
 
@@ -55,7 +63,7 @@ client.on('message', (channel, tags, message, self) => {
                 break;
             case 'bpredict':
             case 'predict':
-                createPollHandler(client, channel, broadcasterId, command, args);
+                createPredictionHandler(client, channel, broadcasterId, command, args);
                 break;
             case 'stopso':
                 removeShoutout(client, channel, args[0], streamerConfigs[broadcasterId]);
@@ -63,13 +71,16 @@ client.on('message', (channel, tags, message, self) => {
             case 'mockso':
                 shoutoutUser(client, channel, args[0], shoutoutCooldowns[broadcasterId]);
                 break;
+            case 'getviewbots':
+                detectViewBots(client, channel, botViewerList);
+                break;
             default:
                 console.log(args);
         }
     }
 
     if (message.match(TWITCHLINKREGEX) != null) {
-        if(isModeratorOrBroadcaster(channel, messageTags)) {
+        if(isModeratorOrBroadcaster(channel, tags)) {
             addShoutouts(client, channel, streamerConfigs[broadcasterId], [...message.matchAll(TWITCHLINKREGEX)].map((link) => link[1]));
         }
     }
@@ -87,8 +98,9 @@ function isModeratorOrBroadcaster(channel, messageTags) {
 
 function exitHandler(options, exitCode) {
     if(options.cleanup) {
-        console.log('Process Ending. Writing File');
-        setStreamerConfigs(JSON.stringify(streamerConfigs));
+        console.log('Process Ending. Writing Config Files');
+        writeConfigFile(JSON.stringify(streamerConfigs), STREAMER_CONFIG_FILE_NAME);
+        writeConfigFile(JSON.stringify(botViewerList), BOT_LIST_FILE_NAME);
     }
     process.exit();
 }
