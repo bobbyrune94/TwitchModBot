@@ -7,13 +7,13 @@ const predictFormat = `!predict [duration] [number of options] [prediction title
 
 function createPredictionHandler(client, channel, broadcasterId, command, args) {
     let duration = parseInt(args[0]);
-    if (isNaN(duration)) {
+    if(isNaN(duration)) {
         client.say(channel, "Duration parameter expected after predict command. Ex: [command] [duration in seconds]. Try again.");
         return;
     }
 
-    if (command === 'bpredict') {
-        if (args.length != 2 && args.length != 4) {
+    if(command === 'bpredict') {
+        if(args.length != 2 && args.length != 4) {
             client.say(channel, `Invalid Number of Parameters. !bpredict command should either be "${bpredictFormat1}" or "${bpredictFormat2}". Try again.`);
             return;
         }
@@ -21,9 +21,9 @@ function createPredictionHandler(client, channel, broadcasterId, command, args) 
         let options = args.length == 2 ? ['Yes', 'No'] : [args[2], args[3]];
 
         createPrediction(client, channel, broadcasterId, duration, args[1], options);
-    } else if (command === 'predict') {
+    } else if(command === 'predict') {
         let numOptions = parseInt(args[1]);
-        if (isNaN(numOptions)) {
+        if(isNaN(numOptions)) {
             client.say(channel, `Unable to determine number of options. !predict command should be formatted as "${predictFormat}"`);
             return;
         }

@@ -29,13 +29,14 @@ const streamerConfigs = readConfigFile(CONFIG_FILE_NAME);
 const shoutoutCooldowns = generateShoutoutCooldowns(streamerConfigs);
 
 const TWITCHLINKREGEX = /(?:https:\/\/)?twitch\.tv\/(\S+)/g;
+const CUTESTRINGREGEX = /k(e|3)nn(y|eth|3th)\s(i|1|l)(s|5)\scut(e|3)/gi
 
 console.log(shoutoutCooldowns);
 
 client.connect();
 
 client.on('message', (channel, tags, message, self) => {
-    if (self) {
+    if(self) {
         return;
     }
 
@@ -44,11 +45,11 @@ client.on('message', (channel, tags, message, self) => {
 
     const broadcasterId = accountToIdMap[channel.slice(1).toLowerCase()];
 
-    if (streamerConfigs[broadcasterId]['shoutouts'].includes(tags['user-id'])) {
+    if(streamerConfigs[broadcasterId]['shoutouts'].includes(tags['user-id'])) {
         shoutoutUser(client, channel, args[0], shoutoutCooldowns[broadcasterId]);
     }
 
-    if (message.startsWith('!')) {
+    if(message.startsWith('!')) {
         const args = message.slice(1).match(/(?:[^\s"]+|"[^"]*")+/g);
         const command = args.shift().toLowerCase();
 
@@ -75,9 +76,14 @@ client.on('message', (channel, tags, message, self) => {
         }
     }
 
-    if (message.match(TWITCHLINKREGEX) != null) {
+    if(message.match(TWITCHLINKREGEX) != null) {
         if(isModeratorOrBroadcaster(channel, messageTags)) {
             addShoutouts(client, channel, streamerConfigs[broadcasterId], [...message.matchAll(TWITCHLINKREGEX)].map((link) => link[1]));
+        }
+    }
+    if(message.match(CUTESTRINGREGEX) != null) {
+        if(channel.slice(1).toLowerCase() === 'kungfu_kenny98') {
+            client.say(channel, `NOPERS fake news. Kenny isn't cute. ${tags['display-name']} is the real cutie.`);
         }
     }
 });

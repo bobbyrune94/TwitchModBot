@@ -6,24 +6,24 @@ const pollFormat = `!poll [duration] [number of options] [poll title] [option 1]
 
 function createPollHandler(client, channel, broadcasterId, command, args) {
     let duration = parseInt(args[0]);
-    if (isNaN(duration)) {
+    if(isNaN(duration)) {
         client.say(channel, "Duration parameter expected after command. Ex: [command] [duration in seconds]. Try again.");
         return;
     }
 
-    if (command === 'starterpoll') {
+    if(command === 'starterpoll') {
         createPoll(client, channel, broadcasterId, duration, 'Which Starter?', ['Grass (Left)', 'Fire (Middle)', 'Water (Right)']);
-    } else if (command === 'bpoll') {
-        if (args.length != 2 && args.length != 4) {
+    } else if(command === 'bpoll') {
+        if(args.length != 2 && args.length != 4) {
             client.say(channel, `Invalid Number of Poll Parameters. !bpoll command should either be "${bpollFormat1}" or "${bpollFormat2}". Try again.`);
             return;
         }
     
         let options = args.length == 2 ? ['Yes', 'No'] : [args[2], args[3]];
         createPoll(client, channel, broadcasterId, duration, args[1], options);
-    } else if (command === 'poll') {
+    } else if(command === 'poll') {
         let numOptions = parseInt(args[1]);
-        if (isNaN(numOptions)) {
+        if(isNaN(numOptions)) {
             client.say(channel, `Unable to determine number of options. !poll command should be formatted as "${pollFormat}"`);
             return;
         }
@@ -51,8 +51,8 @@ function createPoll(client, channel, broadcasterId, duration, title, options) {
     .then((data) => {
         if(data['data'] != undefined) {
             client.say(channel, "Poll Created. Cast Your Votes!");
-        } else if (data['status'] == 400) {
-            if (data['message'].includes('PollAlreadyActive')) {
+        } else if(data['status'] == 400) {
+            if(data['message'].includes('PollAlreadyActive')) {
                 client.say(channel, "I cannot create a new poll as there is one currently active.");
             } else {
                 client.say(channel, data['message']);

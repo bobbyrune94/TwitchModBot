@@ -8,7 +8,7 @@ function readConfigFile(filename) {
 function writeConfigFile(filename, configString) {
     try {
         fs.writeFileSync(filename, configString);
-    } catch (err) {
+    } catch(err) {
         console.error(err);
     }
 }

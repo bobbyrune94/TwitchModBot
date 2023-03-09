@@ -4,7 +4,7 @@ const shoutoutCooldownMillis = 5400000; //1.5 hours
 
 function addShoutouts(client, channel, streamerConfig, users) {
     sendGetUserDataRequestWithUsername(users).then((data) => {
-        if (data['data'] != undefined) {
+        if(data['data'] != undefined) {
             data['data']
             .filter((user) => !streamerConfig['shoutouts'].includes(user['id']))
             .forEach((user) => {
@@ -20,7 +20,7 @@ function addShoutouts(client, channel, streamerConfig, users) {
 
 function shoutoutUser(client, channel, username, shoutoutCooldowns) {
     sendGetUserDataRequestWithUsername([username]).then((data) => {
-        if (data['data'] != undefined) {
+        if(data['data'] != undefined) {
             data['data']
             .filter((user) => Date.now() - shoutoutCooldowns[user['id']] > shoutoutCooldownMillis)
             .forEach((user) => {
@@ -36,7 +36,7 @@ function shoutoutUser(client, channel, username, shoutoutCooldowns) {
 
 function removeShoutout(client, channel, username, streamerConfig) {
     sendGetUserDataRequestWithUsername([username]).then((data) => {
-        if (data['data'] != undefined) {
+        if(data['data'] != undefined) {
             data['data']
             .filter((user) => streamerConfig['shoutouts'].indexOf(user['id']) != -1)
             .forEach((user) => {
