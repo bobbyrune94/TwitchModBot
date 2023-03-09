@@ -37,5 +37,6 @@ function createTimer(client, channel, timeString) {
 }
 
 module.exports = {
+    parseTimeFormat,
     createTimer
 }
